@@ -1,0 +1,126 @@
+[ { "kind": "Input", "value": "0x09e24b156b08e7bc5272f9b731e93b80b458f0b79a5195eb81a471d514f1b1b8", "index": 0, "type": "object" }, { "kind": "Input", "value": "0x2ab9c5b64eb7089af60b4781cc8c8cc408b50f145a5131d091275364c894c118", "index": 1, "type": "pure" }, { "kind": "Input", "value": "100000000000", "index": 2, "type": "pure" } ]
+
+Kind::SplitCoins::Params
+{
+  "kind": "SplitCoins",
+  "coin": {
+    "kind": "GasCoin"
+  },
+  "amounts": [
+    {
+      "kind": "Input",
+      "value": {
+        "Pure": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "index": 0,
+      "type": "pure"
+    }
+  ]
+}
+
+
+
+
+Kind
+
+MoveCall
+
+ObjectId
+
+0x2....0x2
+
+Module
+
+kiosk
+
+Function
+
+set_owner
+
+Arguments
+
+[
+  {
+    "kind": "Input",
+    "value": "0x7e71afda0d795510a39168d8524e12a6218c6ae0734608bc5073a5fb0a6d7a6f", (Kiosk)
+    "index": 1,
+    "type": "object"
+  },
+  {
+    "kind": "Input",
+    "value": "0x984043e9c23b9733154a4cdf2c73348d3af774888164b6fb08a5ad0ab010a895", (Kiosk_Cap)
+    "index": 2,
+    "type": "object"
+  }
+]
+
+
+
+Kind
+
+MoveCall
+
+ObjectId
+
+0x6ea97....ba94
+
+Module
+
+hyperspace
+
+Function
+
+list
+
+Arguments
+
+[
+  {
+    "kind": "Input",
+    "value": "0x7e71afda0d795510a39168d8524e12a6218c6ae0734608bc5073a5fb0a6d7a6f",
+    "index": 1,
+    "type": "object"
+  },
+  {
+    "kind": "Input",
+    "value": "0x984043e9c23b9733154a4cdf2c73348d3af774888164b6fb08a5ad0ab010a895",
+    "index": 2,
+    "type": "object"
+  },
+  {
+    "kind": "Input",
+    "value": "0x7bd2a4319a4a13f57d147dabb6a11d68f049073c4bdf67d4621a689cdd3c8b43" (NFT ID [SuiFrens]),
+    "index": 3,
+    "type": "pure"
+  },
+  {
+    "kind": "Input",
+    "value": {
+      "Pure": [
+        0,
+        166,
+        194,
+        172,
+        2,
+        1,
+        0,
+        0
+      ]
+    },
+    "index": 4,
+    "type": "pure"
+  }
+]
+
+
+SuiFren NFT ID: 0x7bd2a4319a4a13f57d147dabb6a11d68f049073c4bdf67d4621a689cdd3c8b43
+

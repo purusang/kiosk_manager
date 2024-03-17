@@ -34,13 +34,17 @@ const getKioskInfo = async (id : string) =>{
     });
 }
 
-const placeAndList = async (mnemonics:string, item: string, itemType: string, cap: any) =>{
+const placeAndList = async (kiosk:string, item: string, itemType: string, cap: any) =>{
     const tx = new TransactionBlock();
     tx.moveCall({
         target: `0x02::kiosk::place_and_list`,
         arguments: [
+            tx.object(kiosk),
+            tx.object(cap),
             tx.object(item),
+            tx.pure.u64(100000000)
         ],
+        typeArguments: [itemType]
     });
     const result = await client.signAndExecuteTransactionBlock({
         signer: keypair,
@@ -50,7 +54,6 @@ const placeAndList = async (mnemonics:string, item: string, itemType: string, ca
 }
 const createKiosk = async ()=>{
     const tx = new TransactionBlock();
-    // const { keypair, client } = getKeyAndClient(mnemonics);
     let kiosk = tx.moveCall({
         target: `0x02::kiosk::new`,
     });
@@ -78,9 +81,10 @@ async function main(){
     const itemType = `${packageId}::nft::Sword`;
 
     // mint(address, packageId);
-    await createKiosk();
+    // await createKiosk();
     const { kioskOwnerCaps, kioskIds } = await getKioskAndCaps(address);
-    console.log(kioskOwnerCaps, kioskIds );
-    // placeAndList(mnemonics, nftId, itemType, kioskOwnerCaps );
+    console.log(kioskOwnerCaps[0], kioskIds[0] );
+    await placeAndList( kioskIds[0], nftId,  `${packageId}::nft::Sword`, kioskOwnerCaps[0].objectId);
+    console.log(`Item ${nftId} placed in Kiosk: ${kioskIds[0]}`);
 }
 main();

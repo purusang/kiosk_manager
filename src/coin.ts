@@ -5,8 +5,11 @@ import * as dotenv from 'dotenv';
 // import { getFaucetHost, requestSuiFromFaucetV0 } from '@mysten/sui.js/faucet';
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import {getKeyAndClient, getEnv} from "./utils";
-import { create } from 'domain';
 
+// We need a Sui Client. You can re-use the SuiClient of your project
+// (it's not recommended to create a new one).
+// const client = new SuiClient({ url: getFullnodeUrl('testnet') });
+// // Now we can use it to create a kiosk Client.
 let mnemonics : string = getEnv("MNEMONICS1"); //...77ce308725b1ec84                    // caller/signer mnemonic  
 const { keypair, client } = getKeyAndClient(mnemonics);
 const kioskClient = new KioskClient({
@@ -15,20 +18,22 @@ const kioskClient = new KioskClient({
 });
 const address = "0x8ee63e61b0388b4f78dac2f477ce3087e5f1fc38bbcade729dbf14b625b1ec84";   // caller address
 
-
-// public fun new<T>(
-//     pub: &Publisher, ctx: &mut TxContext
-// )
-// public fun add_rule<T, Rule: drop, Config: store + drop>(
-//     _: Rule, policy: &mut TransferPolicy<T>, cap: &TransferPolicyCap<T>, cfg: Config
-// )
-
-const createPolicy = async (publisher:string, itemType: string) => {
+const splitCoin = async (coin:string, itemType: string, amt: number) => {
     const tx = new TransactionBlock();
-    tx.moveCall({
-        target: `0x02::transfer_policy::default`,
+    let split_coin = tx.moveCall({
+        target: `0x02::coin::split`,
         arguments: [
-            tx.object(publisher)
+            tx.object(coin),
+            tx.pure.u64(amt)
+        ],
+        typeArguments: [itemType]
+    });
+    tx.moveCall({  // returns  (ID, u64, ID)
+        target: `0x02::transfer::public_transfer`,  
+        arguments: [
+            split_coin[0],
+            tx.pure.address(address),
+            // tx.object(coin),
         ],
         typeArguments: [itemType]
     });
@@ -38,7 +43,5 @@ const createPolicy = async (publisher:string, itemType: string) => {
     });
     await client.signAndExecuteTransactionBlock({signer: keypair, transactionBlock: tx });
 }
-const packageId = getEnv("PACKAGE"); // nft contract
-const itemType = `${packageId}::nft::Sword`;
-const publisher = getEnv("PUBLISHER");
-// createPolicy(publisher, itemType);
+const coin = getEnv("COIN");
+splitCoin(coin, "0x02::sui::SUI", 100000000);

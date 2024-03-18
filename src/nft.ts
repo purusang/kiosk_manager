@@ -27,7 +27,7 @@ const mint = async (mnemonics: string, packageId:string) => {
 async function main(){
     // let packageId :string = "0xff0ad00294545fd4230278d44de19376da4df216eba1a89eb00f73496c15d031";
     let mnemonics : string = getEnv("MNEMONICS1"); //...77ce308725b1ec84
-    const packageId = "0xff0ad00294545fd4230278d44de19376da4df216eba1a89eb00f73496c15d031";
+    const packageId = "8afd21bbf64452f2f620a185d5b79b5322a6dafe0728a00018d4d2ca449fdcf4";
     mint(mnemonics, packageId);
 }
 main();

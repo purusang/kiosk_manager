@@ -4,6 +4,11 @@ module marketplace::nft {
     use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
+    use sui::package;
+
+    struct NFT has drop {
+
+    }
 
     // Part 2: Struct definitions
     struct Sword has key, store {
@@ -18,11 +23,14 @@ module marketplace::nft {
     }
 
     // Part 3: Module initializer to be executed when this module is published
-    fun init(ctx: &mut TxContext) {
+    fun init(witness:NFT, ctx: &mut TxContext) {
         let admin = Forge {
             id: object::new(ctx),
             swords_created: 0,
         };
+        let publisher = package::claim(witness, ctx);
+        transfer::public_transfer(publisher, tx_context::sender(ctx));
+
         // Transfer the forge object to the module/package publisher
         transfer::transfer(admin, tx_context::sender(ctx));
     }

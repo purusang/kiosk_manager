@@ -3,13 +3,13 @@ import { Ed25519Keypair, } from '@mysten/sui.js/keypairs/ed25519';
 import * as dotenv from 'dotenv';
 // import { getFaucetHost, requestSuiFromFaucetV0 } from '@mysten/sui.js/faucet';
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import {getKeyAndClient, getEnv} from "./utils";
+import { getKeyAndClient, getEnv } from "./utils";
 
 
 type SuiEnvs = "testnet" | "devnet" | "localnet"
 dotenv.config();
 
-const mint = async (mnemonics: string, packageId:string) => {
+const mint = async (mnemonics: string, packageId: string) => {
     const tx = new TransactionBlock();
     const { keypair, client } = getKeyAndClient(mnemonics);
     tx.moveCall({
@@ -22,12 +22,12 @@ const mint = async (mnemonics: string, packageId:string) => {
         signer: keypair,
         transactionBlock: tx
     });
-    console.log(`Tx hash: ${result}`);
+    console.log(`Tx hash: ${result.digest}`);
 }
-async function main(){
+async function main() {
     // let packageId :string = "0xff0ad00294545fd4230278d44de19376da4df216eba1a89eb00f73496c15d031";
-    let mnemonics : string = getEnv("MNEMONICS1"); //...77ce308725b1ec84
-    const packageId = "8afd21bbf64452f2f620a185d5b79b5322a6dafe0728a00018d4d2ca449fdcf4";
+    let mnemonics: string = getEnv("MNEMONICS1"); //...77ce308725b1ec84
+    let packageId: string = process.env.PACKAGE || '';
     mint(mnemonics, packageId);
 }
 main();

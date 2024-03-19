@@ -9,10 +9,12 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 type SuiEnvs = "testnet" | "devnet" | "localnet"
 dotenv.config();
 
-export const getEnv = (key: string) : SuiEnvs => {
+export const getEnv = (key: string): SuiEnvs => {
+
+
     const value = process.env[key] || '';
     if (!value) {
-        console.error( `{key} not found in environment variables.`);
+        console.error(`{key} not found in environment variables.`);
         process.exit(1); // Exit the program if MNEMONICS is not set.
     }
     return value as SuiEnvs;
@@ -26,10 +28,10 @@ export const getEnv = (key: string) : SuiEnvs => {
 //         recipient: address,
 //     });
 // }
-export const getKeyAndClient = (MNEMONICS:string) => {
+export const getKeyAndClient = (MNEMONICS: string) => {
     const keypair = Ed25519Keypair.deriveKeypair(MNEMONICS);
     const client = new SuiClient({
-        url: getFullnodeUrl('testnet'),
+        url: getFullnodeUrl('devnet'),
     });
     // console.log(keypair, client)
     return { keypair, client };

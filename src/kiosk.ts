@@ -4,28 +4,28 @@ import { Ed25519Keypair, } from '@mysten/sui.js/keypairs/ed25519';
 import * as dotenv from 'dotenv';
 // import { getFaucetHost, requestSuiFromFaucetV0 } from '@mysten/sui.js/faucet';
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import {getKeyAndClient, getEnv} from "./utils";
+import { getKeyAndClient, getEnv } from "./utils";
 
 // We need a Sui Client. You can re-use the SuiClient of your project
 // (it's not recommended to create a new one).
 // const client = new SuiClient({ url: getFullnodeUrl('testnet') });
 // // Now we can use it to create a kiosk Client.
-let mnemonics : string = getEnv("MNEMONICS1"); //...77ce308725b1ec84                    // caller/signer mnemonic  
+let mnemonics: string = getEnv("MNEMONICS1"); //...77ce308725b1ec84                    // caller/signer mnemonic  
 const { keypair, client } = getKeyAndClient(mnemonics);
 const kioskClient = new KioskClient({
-	client,
-	network: Network.TESTNET,
+    client,
+    network: Network.TESTNET,
 });
-const address = "0x8ee63e61b0388b4f78dac2f477ce3087e5f1fc38bbcade729dbf14b625b1ec84";   // caller address
+const address = "0x856457e720ea48cbab8307375a9e1d826632186832bb883d20c298ecf71ae9f5";   // caller address
 
 
 
-const getKioskAndCaps = async (address:string) =>{
+const getKioskAndCaps = async (address: string) => {
     const { kioskOwnerCaps, kioskIds } = await kioskClient.getOwnedKiosks({ address });
     return { kioskOwnerCaps, kioskIds };
 }
-const getKioskInfo = async (id : string) =>{
-    return  await kioskClient.getKiosk({
+const getKioskInfo = async (id: string) => {
+    return await kioskClient.getKiosk({
         id,
         options: {
             withKioskFields: true, // this flag also returns the `kiosk` object in the response, which includes the base setup
@@ -33,8 +33,130 @@ const getKioskInfo = async (id : string) =>{
         }
     });
 }
+const place = async (kiosk: string, item: string, itemType: string, cap: any) => {
+    const tx = new TransactionBlock();
+    tx.moveCall({
+        target: `0x02::kiosk::place`,
+        arguments: [
+            tx.object(kiosk),
+            tx.object(cap),
+            tx.object(item),
+        ],
+        typeArguments: [itemType]
+    });
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+    const res = await client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: tx });
+    console.log(`Tx hash: ${res.digest}`);
+}
 
-const placeAndList = async (kiosk:string, item: string, itemType: string, cap: any) =>{
+const take = async (kiosk: string, item: string, itemType: string, cap: any) => {
+    const tx = new TransactionBlock();
+    let nft_item = tx.moveCall({
+        target: `0x02::kiosk::take`,
+        arguments: [
+            tx.object(kiosk),
+            tx.object(cap),
+            tx.pure(item),
+        ],
+        typeArguments: [itemType]
+    });
+    tx.transferObjects([nft_item], tx.pure.address(address));
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+    const res = await client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: tx });
+    console.log(`Tx hash: ${res.digest}`);
+}
+
+const list = async (kiosk: string, item: string, itemType: string, cap: any) => {
+    const tx = new TransactionBlock();
+    tx.moveCall({
+        target: `0x02::kiosk::list`,
+        arguments: [
+            tx.object(kiosk),
+            tx.object(cap),
+            tx.pure(item),
+            tx.pure.u64(100000000)
+        ],
+        typeArguments: [itemType]
+    });
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+    console.log(`Tx hash: ${result.digest}`);
+}
+const listWithPurhcasCap = async (kiosk: string, item: string, itemType: string, cap: any) => {
+    const tx = new TransactionBlock();
+    let pCap = tx.moveCall({
+        target: `0x02::kiosk::list_with_purchase_cap`,
+        arguments: [
+            tx.object(kiosk),
+            tx.object(cap),
+            tx.pure(item),
+            tx.pure.u64(100000000)
+        ],
+        typeArguments: [itemType]
+    });
+    tx.transferObjects([pCap], tx.pure.address(address));
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+    console.log(`Tx hash: ${result.digest}`);
+}
+
+const purchaseWithPurhcasCap = async (kiosk: string, item: string, itemType: string, cap: any, policy: string) => {
+    const tx = new TransactionBlock();
+    let pCap = tx.moveCall({
+        target: `0x02::kiosk::purchase_with_cap`,
+        arguments: [
+            tx.object(kiosk),
+            tx.object("0xe437aed441e68df0c48f351d625a2e99158da0b9327fb91c3c198a56b31b5ba4"),
+            tx.object("0x8434d0fa6187759d2ecf725a70e3cbf01f7f96a14a57df23201e6341665233a2"),
+        ],
+        typeArguments: [itemType]
+    });
+    tx.moveCall({  // returns  (ID, u64, ID)
+        target: `0x02::transfer_policy::confirm_request`,
+        arguments: [
+            tx.object(policy),
+            pCap[1],
+        ],
+        typeArguments: [itemType]
+    });
+    tx.transferObjects([pCap[0]], tx.pure.address(address));
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+    console.log(`Tx hash: ${result.digest}`);
+}
+
+const deList = async (kiosk: string, item: string, itemType: string, cap: any) => {
+    const tx = new TransactionBlock();
+    tx.moveCall({
+        target: `0x02::kiosk::delist`,
+        arguments: [
+            tx.object(kiosk),
+            tx.object(cap),
+            tx.pure(item),
+        ],
+        typeArguments: [itemType]
+    });
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+    console.log(`Tx hash: ${result.digest}`);
+}
+
+
+const placeAndList = async (kiosk: string, item: string, itemType: string, cap: any) => {
     const tx = new TransactionBlock();
     tx.moveCall({
         target: `0x02::kiosk::place_and_list`,
@@ -50,9 +172,9 @@ const placeAndList = async (kiosk:string, item: string, itemType: string, cap: a
         signer: keypair,
         transactionBlock: tx
     });
-    await client.signAndExecuteTransactionBlock({signer: keypair, transactionBlock: tx });
+    await client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: tx });
 }
-const createKiosk = async ()=>{
+const createKiosk = async () => {
     const tx = new TransactionBlock();
     let kiosk = tx.moveCall({
         target: `0x02::kiosk::new`,
@@ -62,21 +184,20 @@ const createKiosk = async ()=>{
         arguments: [
             kiosk[0]
         ],
-        typeArguments:[ "0x02::kiosk::Kiosk" ]
+        typeArguments: ["0x02::kiosk::Kiosk"]
     });
     tx.moveCall({
         target: `0x02::transfer::public_transfer`,
         arguments: [
             kiosk[1], tx.pure.address(address)
         ],
-        typeArguments:[ "0x02::kiosk::KioskOwnerCap" ]
+        typeArguments: ["0x02::kiosk::KioskOwnerCap"]
     });
-    await client.signAndExecuteTransactionBlock({signer: keypair, transactionBlock: tx });
+    let res = await client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: tx });
+    console.log(res.digest);
 }
-// public fun lock<T: key + store>(
-//     self: &mut Kiosk, cap: &KioskOwnerCap, _policy: &TransferPolicy<T>, item: T
-// ) {
-const lockItem = async (kiosk:string, cap: any, policy: string,  item: string, itemType: string) => {
+
+const lockItem = async (kiosk: string, cap: any, policy: string, item: string, itemType: string) => {
     const tx = new TransactionBlock();
     tx.moveCall({
         target: `0x02::kiosk::lock`,
@@ -92,11 +213,13 @@ const lockItem = async (kiosk:string, cap: any, policy: string,  item: string, i
         signer: keypair,
         transactionBlock: tx
     });
-    await client.signAndExecuteTransactionBlock({signer: keypair, transactionBlock: tx });
+    let res = await client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: tx });
+    console.log(`Tx hash: ${res.digest}`);
 }
 
-const purchaseItem = async (kiosk:string, itemId: string, coin:string, itemType: string, policy: string) => {
+const purchaseItem = async (kiosk: string, itemId: string, coin: string, itemType: string, policy: string) => {
     const tx = new TransactionBlock();
+
     const nested_result = tx.moveCall({  // returns  (T, TransferRequest<T>) 
         target: `0x02::kiosk::purchase`,
         arguments: [
@@ -117,7 +240,7 @@ const purchaseItem = async (kiosk:string, itemId: string, coin:string, itemType:
     });
 
     tx.moveCall({  // returns  (ID, u64, ID)
-        target: `0x02::transfer::public_transfer`,  
+        target: `0x02::transfer::public_transfer`,
         arguments: [
             nested_result[0],
             tx.pure.address(address),
@@ -131,23 +254,99 @@ const purchaseItem = async (kiosk:string, itemId: string, coin:string, itemType:
         signer: keypair,
         transactionBlock: tx
     });
+    console.log(`Tx hash: ${result.digest}`);
 }
-async function main(){
-    // const address = "0x8ee63e61b0388b4f78dac2f477ce3087e5f1fc38bbcade729dbf14b625b1ec84";   // caller address
+
+const withdraw = async (kiosk: string, kiosk_cap: string) => {
+    const tx = new TransactionBlock();
+    console.log(kiosk);
+    console.log(kiosk_cap);
+
+    let amtArg = tx.moveCall({
+        target: '0x1::option::some',
+        arguments: [tx.pure('90000000', 'u64')],
+        typeArguments: ['u64'],
+    })
+
+    let coin = tx.moveCall({
+        target: `0x2::kiosk::withdraw`,
+        arguments: [
+            tx.object(kiosk),
+            tx.object(kiosk_cap),
+            amtArg
+        ],
+    });
+    tx.transferObjects([coin], tx.pure.address(address));
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+    const res = await client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: tx });
+    console.log(`Tx hash: ${res.digest}`);
+
+}
+
+const setOwnerCustom = async (kiosk: string, kiosk_cap: string, owner: string) => {
+    const tx = new TransactionBlock();
+    tx.moveCall({
+        target: `0x02::kiosk::set_owner_custom`,
+        arguments: [
+            tx.object(kiosk),
+            tx.object(kiosk_cap),
+            tx.pure(owner),
+        ],
+    });
+
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+
+    console.log(`Tx hash: ${result.digest}`);
+}
+
+const closeAndWithdraw = async (kioks: string, kiosk_cap: string) => {
+    const tx = new TransactionBlock();
+    let coin = tx.moveCall({
+        target: `0x02::kiosk::close_and_withdraw`,
+        arguments: [
+            tx.object(kioks),
+            tx.object(kiosk_cap),
+        ],
+    });
+    tx.transferObjects([coin], tx.pure.address(address));
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+    await client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: tx });
+}
+async function main() {
+    // const address = "0x856457e720ea48cbab8307375a9e1d826632186832bb883d20c298ecf71ae9f5";   // caller address
     const packageId = getEnv("PACKAGE"); // nft contract
-    const nftId = getEnv("NFT");     
+    const nftId = getEnv("NFT");
     const itemType = `${packageId}::nft::Sword`;
     const publisher = getEnv("PUBLISHER");
     const policy = getEnv("TRANSFER_POLICY");
     const coin = getEnv("COIN");
     const kiosk = getEnv("KIOSK");
+    const kioskCap = getEnv("KIOSK_OWNER_CAP");
     // mint(address, packageId);
-    // await createKiosk();
+    // const res = await createKiosk();
     // const { kioskOwnerCaps, kioskIds } = await getKioskAndCaps(address);
-    // console.log(kioskOwnerCaps[0], kioskIds[0] );
-    // await placeAndList( kioskIds[0], nftId,  `${packageId}::nft::Sword`, kioskOwnerCaps[0].objectId);
-    // await lockItem(kioskIds[0], kioskOwnerCaps[0].objectId, policy, nftId, itemType);
-    await purchaseItem(kiosk, nftId, coin, itemType, policy);
-    console.log(`Item ${nftId} purchased from Kiosk: ${kiosk}`);
+    // console.log(kioskOwnerCaps[0], kioskIds[0]);
+    // await placeAndList(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
+    // await place(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
+    // await take(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
+    // await list(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
+    // await listWithPurhcasCap(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
+    await purchaseWithPurhcasCap(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap, policy);
+    // await deList(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
+    // await lockItem(kiosk, kioskCap, policy, nftId, itemType);
+    // await purchaseItem(kiosk, nftId, coin, itemType, policy);
+    // await withdraw(kiosk, kioskCap);
+    // await setOwnerCustom(kiosk, kioskCap, "0xc1c90ab4fb7949a5107ee363cd9b95ed484095860f4ca0f3e8a9fd6ac210f551");
+    // await closeAndWithdraw(kiosk, kioskCap);
+    // console.log(`Item ${nftId} purchased from Kiosk: ${kiosk}`);
 }
 main();

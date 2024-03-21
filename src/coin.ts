@@ -16,7 +16,7 @@ const kioskClient = new KioskClient({
     client,
     network: Network.TESTNET,
 });
-const address = "0x856457e720ea48cbab8307375a9e1d826632186832bb883d20c298ecf71ae9f5";   // caller address
+const address = "0x0850b12520f4f23a1510cf23ae06a34c073c2582c47d59bdddc6b85a59253eb7";   // caller address
 
 const splitCoin = async (coin: string, itemType: string, amt: number) => {
     const tx = new TransactionBlock();

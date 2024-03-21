@@ -16,7 +16,7 @@ const kioskClient = new KioskClient({
     client,
     network: Network.TESTNET,
 });
-const address = "0x856457e720ea48cbab8307375a9e1d826632186832bb883d20c298ecf71ae9f5";   // caller address
+const address = "0x0850b12520f4f23a1510cf23ae06a34c073c2582c47d59bdddc6b85a59253eb7";   // caller address
 
 
 
@@ -24,6 +24,8 @@ const getKioskAndCaps = async (address: string) => {
     const { kioskOwnerCaps, kioskIds } = await kioskClient.getOwnedKiosks({ address });
     return { kioskOwnerCaps, kioskIds };
 }
+
+
 const getKioskInfo = async (id: string) => {
     return await kioskClient.getKiosk({
         id,
@@ -33,6 +35,26 @@ const getKioskInfo = async (id: string) => {
         }
     });
 }
+
+const kioskAllowExtension = async (kiosk: string, item: string, itemType: string, cap: any) => {
+    const tx = new TransactionBlock();
+    tx.moveCall({
+        target: `0x02::kiosk::allow_extension`,
+        arguments: [
+            tx.object(kiosk),
+            tx.object(cap),
+            tx.object(item),
+        ],
+        typeArguments: [itemType]
+    });
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+    const res = await client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: tx });
+    console.log(`Tx hash: ${res.digest}`);
+}
+
 const place = async (kiosk: string, item: string, itemType: string, cap: any) => {
     const tx = new TransactionBlock();
     tx.moveCall({
@@ -172,7 +194,7 @@ const placeAndList = async (kiosk: string, item: string, itemType: string, cap: 
         signer: keypair,
         transactionBlock: tx
     });
-    await client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: tx });
+    console.log(`Tx hash: ${result.digest}`);
 }
 const createKiosk = async () => {
     const tx = new TransactionBlock();
@@ -194,7 +216,7 @@ const createKiosk = async () => {
         typeArguments: ["0x02::kiosk::KioskOwnerCap"]
     });
     let res = await client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: tx });
-    console.log(res.digest);
+    console.log('Kiosk created digest: ',res.digest);
 }
 
 const lockItem = async (kiosk: string, cap: any, policy: string, item: string, itemType: string) => {
@@ -213,13 +235,12 @@ const lockItem = async (kiosk: string, cap: any, policy: string, item: string, i
         signer: keypair,
         transactionBlock: tx
     });
-    let res = await client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: tx });
-    console.log(`Tx hash: ${res.digest}`);
+    console.log(`Tx hash item locked: ${result.digest}`);
 }
 
-const purchaseItem = async (kiosk: string, itemId: string, coin: string, itemType: string, policy: string) => {
+const purchaseItem = async (kiosk: string, itemId: string,  itemType: string, policy: string) => {
     const tx = new TransactionBlock();
-
+    const coin = tx.splitCoins(tx.gas, [tx.pure(100000000)])
     const nested_result = tx.moveCall({  // returns  (T, TransferRequest<T>) 
         target: `0x02::kiosk::purchase`,
         arguments: [
@@ -229,26 +250,47 @@ const purchaseItem = async (kiosk: string, itemId: string, coin: string, itemTyp
         ],
         typeArguments: [itemType]
     });
-    let confirm_request = tx.moveCall({  // returns  (ID, u64, ID)
+    
+    tx.moveCall({
+        target: `0x02::kiosk::lock`,
+        arguments: [
+            tx.object("0x2e5baa41fcbf3fa1db4a597b833339775fb7ddaf367127876d1c3cb92b2bdc9c"),
+            tx.object("0x5004274e0dbad792f85c2b7c58b4b2fb0f9c5c26b358401be95bf822528d075c"),
+            tx.object(policy),
+            tx.object(nested_result[0])
+        ],
+        typeArguments: [itemType]
+    });
+
+    tx.moveCall({ 
+        target: `0x18e08df147f25ab4c2326365631fa7c2aedfdc7c1cb9777f6c2d7c25f3b7e0d2::item_locked_policy::prove`,
+        arguments: [
+            nested_result[1],
+            tx.object("0x2e5baa41fcbf3fa1db4a597b833339775fb7ddaf367127876d1c3cb92b2bdc9c"),
+        ],
+        typeArguments: [itemType]
+    });
+
+
+    // confirm the request
+    tx.moveCall({
         target: `0x02::transfer_policy::confirm_request`,
         arguments: [
             tx.object(policy),
             nested_result[1],
-            // tx.object(coin),
         ],
         typeArguments: [itemType]
     });
 
-    tx.moveCall({  // returns  (ID, u64, ID)
-        target: `0x02::transfer::public_transfer`,
-        arguments: [
-            nested_result[0],
-            tx.pure.address(address),
-            // tx.object(coin),
-        ],
-        typeArguments: [itemType]
+    // tx.moveCall({  // returns  (ID, u64, ID)
+    //     target: `0x02::transfer::public_transfer`,
+    //     arguments: [
+    //         nested_result[0],
+    //         tx.pure.address(address),
+    //     ],
+    //     typeArguments: [itemType]
+    // });
 
-    });
     // transfer item publisc
     const result = await client.signAndExecuteTransactionBlock({
         signer: keypair,
@@ -319,10 +361,28 @@ const closeAndWithdraw = async (kioks: string, kiosk_cap: string) => {
         signer: keypair,
         transactionBlock: tx
     });
-    await client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: tx });
+    
+}
+
+const allowKioskExtension = async (kiosk: string, kiosk_cap: string) => {
+    const tx = new TransactionBlock();
+    let coin = tx.moveCall({
+        target: `0x02::kiosk::set_allow_extensions`,
+        arguments: [
+            tx.object(kiosk),
+            tx.object(kiosk_cap),
+            tx.pure.bool(true)
+        ],
+    });
+    
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+    console.log("allow extension: ", result.digest);
+    
 }
 async function main() {
-    // const address = "0x856457e720ea48cbab8307375a9e1d826632186832bb883d20c298ecf71ae9f5";   // caller address
     const packageId = getEnv("PACKAGE"); // nft contract
     const nftId = getEnv("NFT");
     const itemType = `${packageId}::nft::Sword`;
@@ -340,13 +400,13 @@ async function main() {
     // await take(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
     // await list(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
     // await listWithPurhcasCap(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
-    await purchaseWithPurhcasCap(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap, policy);
+    // await purchaseWithPurhcasCap(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap, policy);
     // await deList(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
     // await lockItem(kiosk, kioskCap, policy, nftId, itemType);
-    // await purchaseItem(kiosk, nftId, coin, itemType, policy);
+    // await purchaseItem(kiosk, nftId, itemType, policy);
     // await withdraw(kiosk, kioskCap);
     // await setOwnerCustom(kiosk, kioskCap, "0xc1c90ab4fb7949a5107ee363cd9b95ed484095860f4ca0f3e8a9fd6ac210f551");
     // await closeAndWithdraw(kiosk, kioskCap);
-    // console.log(`Item ${nftId} purchased from Kiosk: ${kiosk}`);
+    await allowKioskExtension(kiosk, kioskCap);
 }
 main();

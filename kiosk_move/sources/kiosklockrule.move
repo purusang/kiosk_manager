@@ -25,7 +25,7 @@ module marketplace::item_locked_policy {
     const ENotInKioskBucket: u64 = 199;
 
     /// Insufficent amount for royalty
-    const EInsufficientAmount: u64 = 0;
+    const EInsufficientAmount: u64 = 2;
 
     /// A unique confirmation for the Rule
     struct Rule has drop {}
@@ -52,17 +52,17 @@ module marketplace::item_locked_policy {
     public fun verify_royalty<T>(
         policy: &mut TransferPolicy<T>,
         request: &mut TransferRequest<T>,
-        payment: &mut Coin<SUI>,
+        payment:  Coin<SUI>,
         ctx: &mut TxContext
     ) {
         // using the getter to read the paid amount
         let paid = policy::paid(request);
-        let config: &Config = policy::get_rule(Rule {}, policy);
+        let config: &Config = policy::get_rule(RoyaltyRule {}, policy);
         let amount = (((paid as u128) * (config.royalty_amount as u128) / MAX_BP) as u64);
-        assert!(coin::value(payment) >= amount, EInsufficientAmount);
+        // assert!(coin::value(payment) >= amount, EInsufficientAmount);
 
-        let fee = coin::split(payment, amount, ctx);
-        policy::add_to_balance(Rule {}, policy, fee);
-        policy::add_receipt(Rule {}, request)
+        // let fee = coin::split(payment, amount, ctx);
+        policy::add_to_balance(RoyaltyRule {}, policy, payment);
+        policy::add_receipt(RoyaltyRule {}, request)
     }
 }

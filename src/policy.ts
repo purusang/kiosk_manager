@@ -128,6 +128,24 @@ const prove_rule = async (packageId: string, policy:string, policyCap:string, it
    console.log("Add rule digest: ",result.digest);
 }
 
+const destroy_and_withdraw = async (policy:string, policyCap:string, itemType:string) => {
+    const tx = new TransactionBlock();
+    let withdrawn_coin = tx.moveCall({
+        target: "0x2::transfer_policy::destroy_and_withdraw",
+        arguments: [
+            tx.object(policy),
+            tx.object(policyCap),
+        ],
+        typeArguments: [itemType]
+    });
+    tx.transferObjects([withdrawn_coin], tx.pure.address(address));
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+   console.log("Add rule digest: ",result.digest);
+}
+
 
 async function main() {
     const packageId = getEnv("PACKAGE"); // nft contract
@@ -137,10 +155,11 @@ async function main() {
     const publisher = getEnv("PUBLISHER");
 
 
-    createPolicy(publisher, itemType);
+    // createPolicy(publisher, itemType);
     // add_rule(packageId, policy, policyCap, itemType)
     // add_royalty_rule(packageId, policy, policyCap, itemType)
     // add_royalty_rule(packageId, policy, policyCap, itemType)
     // remove_rule(policy, policyCap, itemType)
+    // destroy_and_withdraw(policy, policyCap, itemType)
 }
 main()

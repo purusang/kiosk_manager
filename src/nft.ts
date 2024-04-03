@@ -1,7 +1,5 @@
-import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
-import { Ed25519Keypair, } from '@mysten/sui.js/keypairs/ed25519';
+
 import * as dotenv from 'dotenv';
-// import { getFaucetHost, requestSuiFromFaucetV0 } from '@mysten/sui.js/faucet';
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { getKeyAndClient, getEnv } from "./utils";
 
@@ -12,7 +10,7 @@ dotenv.config();
 const mint = async (mnemonics: string, packageId: string) => {
     const tx = new TransactionBlock();
     const { keypair, client } = getKeyAndClient(mnemonics);
-    console.log("jfafaklahlkj",keypair.getPublicKey().toSuiAddress());
+    console.log("Wallet: ", keypair.getPublicKey().toSuiAddress());
     
     tx.moveCall({
         target: `${packageId}::nft::mint`,

@@ -16,9 +16,7 @@ const kioskClient = new KioskClient({
     client,
     network: Network.TESTNET,
 });
-const address = "0x0850b12520f4f23a1510cf23ae06a34c073c2582c47d59bdddc6b85a59253eb7";   // caller address
-
-
+const address = "0x16b80901b9e6d3c8b5f54dc8a414bb1a75067db897e7a3624793176b97445ec6";   // caller address
 
 const getKioskAndCaps = async (address: string) => {
     const { kioskOwnerCaps, kioskIds } = await kioskClient.getOwnedKiosks({ address });
@@ -240,7 +238,8 @@ const lockItem = async (kiosk: string, cap: any, policy: string, item: string, i
 
 const purchaseItem = async (kiosk: string, itemId: string,  itemType: string, policy: string) => {
     const tx = new TransactionBlock();
-    const coin = tx.splitCoins(tx.gas, [tx.pure(100000000)])
+    const coin = tx.splitCoins(tx.gas, [tx.pure(100000000)]); 
+    const coin2 = tx.splitCoins(tx.gas, [tx.pure(1_0_000_000)]);
     const nested_result = tx.moveCall({  // returns  (T, TransferRequest<T>) 
         target: `0x02::kiosk::purchase`,
         arguments: [
@@ -254,19 +253,26 @@ const purchaseItem = async (kiosk: string, itemId: string,  itemType: string, po
     tx.moveCall({
         target: `0x02::kiosk::lock`,
         arguments: [
-            tx.object("0x2e5baa41fcbf3fa1db4a597b833339775fb7ddaf367127876d1c3cb92b2bdc9c"),
-            tx.object("0x5004274e0dbad792f85c2b7c58b4b2fb0f9c5c26b358401be95bf822528d075c"),
+            tx.object("0x133304517ae77914cdcda1df11666c1187c33004a36d4d809595fddeeac54dc7"),
+            tx.object("0xd165a3aa2597211f5ce1f62ca0863f9d70c15274054c10bcf0eeea5e57116e8d"),
             tx.object(policy),
             tx.object(nested_result[0])
         ],
         typeArguments: [itemType]
     });
-
+    /*
+        policy: &mut TransferPolicy<T>,
+        request: &mut TransferRequest<T>,
+        payment: &mut Coin<SUI>,
+        ctx: &mut TxContext*/
     tx.moveCall({ 
-        target: `0x18e08df147f25ab4c2326365631fa7c2aedfdc7c1cb9777f6c2d7c25f3b7e0d2::item_locked_policy::prove`,
+        target: `0xf0d9c16afcc81c7ae0bdbf3b040feb1928272883649fb4ae5650c2d8eeee0e13::royalty_policy::pay`,
         arguments: [
+            tx.object("0xfff082a759c18445b7aa12e8329675fde4b99ac268a599982df9e1f0ac77c424"),
             nested_result[1],
-            tx.object("0x2e5baa41fcbf3fa1db4a597b833339775fb7ddaf367127876d1c3cb92b2bdc9c"),
+            //tx.object("0xaa2475a6b23a74768ff0107bcf55a5380b53fa2b36d9aacc79d56606c72474f8"),
+            //tx.object("0xaa2475a6b23a74768ff0107bcf55a5380b53fa2b36d9aacc79d56606c72474f8"),
+            coin2,
         ],
         typeArguments: [itemType]
     });
@@ -292,6 +298,7 @@ const purchaseItem = async (kiosk: string, itemId: string,  itemType: string, po
     // });
 
     // transfer item publisc
+    tx.transferObjects([coin2], tx.pure.address(address));
     const result = await client.signAndExecuteTransactionBlock({
         signer: keypair,
         transactionBlock: tx
@@ -382,31 +389,51 @@ const allowKioskExtension = async (kiosk: string, kiosk_cap: string) => {
     console.log("allow extension: ", result.digest);
     
 }
+
+const addExtension = async (kiosk: string, kiosk_cap: string) => {
+    const tx = new TransactionBlock();
+    let coin = tx.moveCall({
+        target: `0x02::kiosk::set_allow_extensions`,
+        arguments: [
+            tx.object(kiosk),
+            tx.object(kiosk_cap),
+            tx.pure.bool(true)
+        ],
+    });
+    
+    const result = await client.signAndExecuteTransactionBlock({
+        signer: keypair,
+        transactionBlock: tx
+    });
+    console.log("allow extension: ", result.digest);
+    
+}
 async function main() {
     const packageId = getEnv("PACKAGE"); // nft contract
     const nftId = getEnv("NFT");
-    const itemType = `${packageId}::nft::Sword`;
+    //const itemType = `${packageId}::nft::Sword`;
+    const itemType = '0xf0d9c16afcc81c7ae0bdbf3b040feb1928272883649fb4ae5650c2d8eeee0e13::minter::NFT';
     const publisher = getEnv("PUBLISHER");
     const policy = getEnv("TRANSFER_POLICY");
     const coin = getEnv("COIN");
     const kiosk = getEnv("KIOSK");
     const kioskCap = getEnv("KIOSK_OWNER_CAP");
     // mint(address, packageId);
-    // const res = await createKiosk();
+   // const res = await createKiosk();
     // const { kioskOwnerCaps, kioskIds } = await getKioskAndCaps(address);
     // console.log(kioskOwnerCaps[0], kioskIds[0]);
     // await placeAndList(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
     // await place(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
     // await take(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
-    // await list(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
+    // await list(kiosk, nftId,'0xf0d9c16afcc81c7ae0bdbf3b040feb1928272883649fb4ae5650c2d8eeee0e13::minter::NFT', kioskCap);
     // await listWithPurhcasCap(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
     // await purchaseWithPurhcasCap(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap, policy);
     // await deList(kiosk, nftId, `${packageId}::nft::Sword`, kioskCap);
     // await lockItem(kiosk, kioskCap, policy, nftId, itemType);
-    // await purchaseItem(kiosk, nftId, itemType, policy);
+    await purchaseItem(kiosk, nftId, itemType, policy);
     // await withdraw(kiosk, kioskCap);
     // await setOwnerCustom(kiosk, kioskCap, "0xc1c90ab4fb7949a5107ee363cd9b95ed484095860f4ca0f3e8a9fd6ac210f551");
     // await closeAndWithdraw(kiosk, kioskCap);
-    await allowKioskExtension(kiosk, kioskCap);
+    //await allowKioskExtension(kiosk, kioskCap);
 }
 main();

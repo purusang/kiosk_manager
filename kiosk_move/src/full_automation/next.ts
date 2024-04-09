@@ -2,7 +2,7 @@
 import getPackageId from "../../utils/setup";
 import createKioskFn from "../kiosk/create_kiosk";
 import { placeList } from "../kiosk/place_and_list";
-import {lock} from "../kiosk/lock_nft";
+import { lock } from "../kiosk/lock_nft";
 import { purchaseItemRoyaltyRule } from "../kiosk/purchase";
 import mintNfts from "../mint_nft/mint_nft";
 //import { add_rule, createPolicy } from "../policy/policy";
@@ -23,36 +23,34 @@ async function main() {
     let packageId = resPackage.packageId;
     let TransferPolicyId: string = resPackage.TransferPolicyId;
     let TransferPolicyCapId: string = resPackage.TransferPolicyCapId;
-    let itemType = `${packageId}::nft::Sword`; 
+    let itemType = `${packageId}::nft::Sword`;
     console.log("Creating the Kiosk\n");
     const resKiosk = await createKioskFn(CALLER_ADDRESS);
     let kioskId = resKiosk.kioskId;
-    let kioskOwnerCapId = resKiosk.kisokOwnerCapId; 
+    let kioskOwnerCapId = resKiosk.kisokOwnerCapId;
 
     console.log("minting the NFT\n");
-    const resNfts = await mintNfts(packageId); 
+    const resNfts = await mintNfts(packageId);
     let nftList = resNfts;
     console.log(nftList);
     console.log("Adding the rule\n");
     await addRule(packageId, TransferPolicyId, TransferPolicyCapId, itemType);
     console.log("placing and listing Nft \n");
-    for(let i=0; i<nftList.length; i++){
+    for (let i = 0; i < 5; i++) {
         console.log(nftList[i]);
         await placeList(kioskId, kioskOwnerCapId, nftList[i], itemType);
     }
     const lockNfts = await mintNfts(packageId);
     let lockNftList = lockNfts;
     console.log("locking Nfts");
-    for(let i=0; i<lockNftList.length; i++) {
+    for (let i = 5; i < lockNftList.length; i++) {
         await lock(kioskId, kioskOwnerCapId, TransferPolicyId, lockNftList[i], itemType);
     }
     console.log("purchasing Nfts");
-    for(let i= 0; i<nftList.length; i++) {
+    for (let i = 2; i < 5; i++) {
         await purchaseItemRoyaltyRule(
             kioskId,
             nftList[i],
-   // buyerKiosk: any,
-    //buyerKioskCap: any,
             TransferPolicyId,
             itemType,
             packageId,

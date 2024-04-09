@@ -1,7 +1,11 @@
 import getPackageId from "../../utils/setup";
 import createKioskFn from "../kiosk/create_kiosk";
+import { deList } from "../kiosk/delist";
+import { lock } from "../kiosk/lock_nft";
 import { placeList } from "../kiosk/place_and_list";
 import { purchaseItem } from "../kiosk/purchase";
+import { take_item } from "../kiosk/take_item";
+import { withdraw } from "../kiosk/withdraw";
 import mintNfts from "../mint_nft/mint_nft";
 import { add_rule, createPolicy } from "../policy/policy";
 
@@ -29,9 +33,19 @@ async function main() {
     let policyCapId = resPolicy.policyCapId;
 
     await add_rule(policyId, policyCapId, packageId, itemType);
-
-    await placeList(kioskId, KioskOwnerCapId, nftList[0], itemType);
-
-    await purchaseItem(kioskId, nftList[0], buyerKioskId, buyerKioskCapId, policyId, itemType, packageId);
+    for (let i = 0; i < 5; i++) {
+        await placeList(kioskId, KioskOwnerCapId, nftList[i], itemType);
+    }
+    for (let i = 5; i < nftList.length; i++) {
+        await lock(kioskId, KioskOwnerCapId, policyId, nftList[i], itemType);
+    }
+    for (let i = 2; i < 5; i++) {
+        await purchaseItem(kioskId, nftList[i], buyerKioskId, buyerKioskCapId, policyId, itemType, packageId);
+    }
+    await deList(kioskId, KioskOwnerCapId, nftList[0], itemType);
+    await take_item(kioskId, KioskOwnerCapId, nftList[1], itemType, CALLER_ADDRESS);
+    await withdraw(kioskId, KioskOwnerCapId);
 }
-main()
+for (let i = 0; i < 10; i++) {
+    main();
+}

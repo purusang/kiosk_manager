@@ -1,11 +1,11 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import * as dotenv from 'dotenv';
 import getExecStuff from '../../utils/execStuff';
-import { packageId, Kiosk, KioskOwnerCap, TransferPolicyId, itemType } from '../../utils/packageInfo';
-import { nft_1 } from '../../utils/nft_id';
+//import { packageId, Kiosk, KioskOwnerCap, TransferPolicyId, itemType } from '../../utils/packageInfo';
+//import { nft_1 } from '../../utils/nft_id';
 dotenv.config();
 
-async function lock() {
+export async function lock(Kiosk: string, KioskOwnerCap: string, TransferPolicyId: string, nft: string, itemType: string) {
     const { client, keypair} = getExecStuff();
     const tx = new TransactionBlock();
     tx.moveCall({
@@ -14,7 +14,7 @@ async function lock() {
             tx.object(Kiosk),
             tx.object(KioskOwnerCap),
             tx.object(TransferPolicyId),
-            tx.object(nft_1)
+            tx.object(nft)
         ],
         typeArguments: [itemType]
     });
@@ -24,4 +24,3 @@ async function lock() {
     });
     console.log(`Tx hash item locked: ${result.digest}`);
 }
-lock();

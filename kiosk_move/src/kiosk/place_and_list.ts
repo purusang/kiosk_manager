@@ -5,7 +5,7 @@ dotenv.config();
 
 export async function placeList(kioksId: any, KioskOwnerCapId: any, nftId: any, itemType: any) {
     const { client, keypair } = getExecStuff();
-    console.log("kioksId", kioksId, " KioskOwnerCapId", KioskOwnerCapId, " nftId", nftId);
+   // console.log("kioksId", kioksId, " KioskOwnerCapId", KioskOwnerCapId, " nftId", nftId);
     const tx = new TransactionBlock();
     tx.moveCall({
         target: `0x02::kiosk::place_and_list`,

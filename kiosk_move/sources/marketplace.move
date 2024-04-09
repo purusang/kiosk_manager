@@ -5,6 +5,8 @@ module marketplace::nft {
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::package;
+    use sui::display;
+    use std::string::{Self as string, utf8, String};
 
     struct NFT has drop {
 
@@ -13,68 +15,40 @@ module marketplace::nft {
     // Part 2: Struct definitions
     struct Sword has key, store {
         id: UID,
-        magic: u64,
+        name: String,
+        description: String,
+        url: String,
         strength: u64,
-    }
-
-    struct Forge has key, store {
-        id: UID,
-        swords_created: u64,
     }
 
     // Part 3: Module initializer to be executed when this module is published
     fun init(witness:NFT, ctx: &mut TxContext) {
-        let admin = Forge {
-            id: object::new(ctx),
-            swords_created: 0,
-        };
+        let keys = vector[
+            utf8(b"name"), 
+            utf8(b"description"),
+            utf8(b"url"),
+        ];
+        let values = vector[
+            utf8(b"{name}"),
+            utf8(b"{description}"),
+            utf8(b"{url}"),
+        ];
         let publisher = package::claim(witness, ctx);
+        let display = display::new_with_fields<Sword>(
+            &publisher, keys, values, ctx
+        );
+        display::update_version(&mut display);
         transfer::public_transfer(publisher, tx_context::sender(ctx));
-
-        // Transfer the forge object to the module/package publisher
-        transfer::transfer(admin, tx_context::sender(ctx));
+        transfer::public_transfer(display, tx_context::sender(ctx));
     }
     public entry fun mint(ctx: &mut TxContext){
         let nft = Sword{
             id: object::new(ctx),
-            magic: 100,
+            name: string::utf8(b"Kiosk NFT"),
+            description: string::utf8(b"Selling Rare NFT"),
+            url: string::utf8(b"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8hBB6Rgo9TgL5Xq0O2qfCLXgJkALu90m3usJ9Qd7pqYX88oMH"),
             strength: 50,
         };
         transfer::transfer(nft, tx_context::sender(ctx));
-    }
-
-    // Part 4: Accessors required to read the struct attributes
-    public fun magic(self: &Sword): u64 {
-        self.magic
-    }
-
-    public fun strength(self: &Sword): u64 {
-        self.strength
-    }
-
-    public fun swords_created(self: &Forge): u64 {
-        self.swords_created
-    }
-
-    // Part 5: Public/entry functions (introduced later in the tutorial)
-
-    // Part 6: Private functions (if any)
-    #[test]
-    public fun test_sword_create() {
-        use sui::transfer;
-        // Create a dummy TxContext for testing
-        let ctx = tx_context::dummy();
-
-        // Create a sword
-        let sword = Sword {
-            id: object::new(&mut ctx),
-            magic: 42,
-            strength: 7,
-        };
-
-        // Check if accessor functions return correct values
-        assert!(magic(&sword) == 42 && strength(&sword) == 7, 1);
-        let dummy_adr = @0xCAFE;
-        transfer::transfer(sword, dummy_adr);
     }
 }

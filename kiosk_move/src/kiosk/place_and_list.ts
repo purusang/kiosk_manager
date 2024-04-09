@@ -1,19 +1,18 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import * as dotenv from 'dotenv';
 import getExecStuff from '../../utils/execStuff';
-import { packageId, Kiosk, KioskOwnerCap, itemType } from '../../utils/packageInfo';
-import { nft_6 } from '../../utils/nft_id';
 dotenv.config();
 
-async function place() {
-    const { client, keypair} = getExecStuff();
+export async function placeList(kioksId: any, KioskOwnerCapId: any, nftId: any, itemType: any) {
+    const { client, keypair } = getExecStuff();
+    console.log("kioksId", kioksId, " KioskOwnerCapId", KioskOwnerCapId, " nftId", nftId);
     const tx = new TransactionBlock();
     tx.moveCall({
         target: `0x02::kiosk::place_and_list`,
         arguments: [
-            tx.object(Kiosk),
-            tx.object(KioskOwnerCap),
-            tx.object(nft_6),
+            tx.object(kioksId),
+            tx.object(KioskOwnerCapId),
+            tx.object(nftId),
             tx.pure.u64(100000000)
         ],
         typeArguments: [itemType]
@@ -24,4 +23,3 @@ async function place() {
     });
     console.log(`Tx hash: ${result.digest}`);
 }
-place();

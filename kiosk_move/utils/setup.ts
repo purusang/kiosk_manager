@@ -13,10 +13,10 @@ function sleep(ms: number): Promise<void> {
 const getPackageId = async () => {
     try {
         const { keypair, client } = getExecStuff();
-        const account = "0x16b80901b9e6d3c8b5f54dc8a414bb1a75067db897e7a3624793176b97445ec6";
+        const account = "0x856457e720ea48cbab8307375a9e1d826632186832bb883d20c298ecf71ae9f5";
         const packagePath = process.cwd();
         const { modules, dependencies } = JSON.parse(
-            execSync(`sui move build --dump-bytecode-as-base64 --path ${packagePath}`, {
+            execSync(`sui move build --dump-bytecode-as-base64 --path ${packagePath}/kiosk_move`, {
                 encoding: "utf-8",
             })
         );
@@ -40,9 +40,6 @@ const getPackageId = async () => {
         const packageId = ((result.objectChanges?.filter(
             (a) => a.type === 'published',
         ) as SuiObjectChangePublished[]) ?? [])[0].packageId.replace(/^(0x)(0+)/, '0x') as string;
-        // console.log(`packaged ID : ${packageId}`);
-       // let Kiosk: any;
-        //let KioskOwnerCap: any;
         let Publisher: any;
         let TransferPolicyId: any;
         let TransferPolicyCapId: any;
@@ -70,12 +67,6 @@ const getPackageId = async () => {
         for (let i = 0; i < output.length; i++) {
             const item = output[i];
             if (item.type === 'created') {
-                // if (item.objectType === `0x2::kiosk::KioskOwnerCap`) {
-                //     KioskOwnerCap = String(item.objectId);
-                // }
-                // if (item.objectType === `0x2::kiosk::Kiosk`) {
-                //     Kiosk = String(item.objectId);
-                // }
                 if (item.objectType === `0x2::package::Publisher`) {
                     Publisher = String(item.objectId);
                 }
@@ -88,21 +79,11 @@ const getPackageId = async () => {
             }
         }
 
-        return { packageId, Publisher, TransferPolicyId, TransferPolicyCapId};
+        return { packageId, Publisher, TransferPolicyId, TransferPolicyCapId };
     } catch (error) {
-        // Handle potential errors if the promise rejects
         console.error(error);
-        return { packageId: '', Publisher: '', TransferPolicyId: '', TransferPolicyCapId: ''};
+        return { packageId: '', Publisher: '', TransferPolicyId: '', TransferPolicyCapId: '' };
     }
 };
-
-// Call the async function and handle the result.
-getPackageId()
-    .then((result) => {
-        console.log(result);
-    })
-    .catch((error) => {
-        console.error(error);
-    });
 
 export default getPackageId;

@@ -1,8 +1,9 @@
-export let packageId = '0xa004d926807ad76edd7011edca6f7a779797599773436e0de4d9dd1ed616b834';
-export let Kiosk = '0x58c66c8ba36dbd27168efcb2dadbbeb4d1d652d2758d503573ecde0f6b42d917';
-export let KioskOwnerCap = '0x90826deedf4ddd5b6ede02db60ab91054e46ed1924c1d85b63ff82d9243d7682';
-export let nftCap = '0xbdce80d3aa9b5fff9db454b0799ae0f6f7770aacd81d14a969c86956ccd68766';
-export let TransferPolicyId = '0x92675a2a2239c8a6baeafc263a8e25b4504551cdece0276afe4e8dba4c3b5095';
-export let TransferPolicyCapId = '0x6273e3ec56c355b7a3d4ecee2c3bf7b9cd19d6dcff99ab720fdc97e65aa245ec';
+export let packageId = '0x58c6ac33cb4ad77fc0cbc99c967114b62c32754b2beaf2effecdf382e93af4c1';
+export let Publisher = '0x194b703283dbd9c20f75d3595124876b6c2c5d07c45409f40cd4a97a0b58163f';
+export let Kiosk = '0xd2a9c5ad03409507926e16b1ebdc08e6eb067fc707a197186ca166deaf3d14db';
+export let KioskOwnerCap = '0x8a2153cba2c93c6e3b09f885afd34dc9952e487aaa677c4e49f3471cd53e54fa';
+export let TransferPolicyId = '0xf4bb592ac812463066d5d8105ffdbd9f24fe40ef93080dd615ac5fdf448e5e81';
+export let TransferPolicyCapId = '0x578f86df154164602c33a58b752c003c71306290eb67a529e2a24b96ef512b19';
 export let itemType = `${packageId}::nft::Sword`;
-export let Publisher = '0x16d44bc7ae91544bd9b0c70512682d4105aa163202a68e4760d63d578454e1c4';
+// export let nftCap = '0xbdce80d3aa9b5fff9db454b0799ae0f6f7770aacd81d14a969c86956ccd68766';
+

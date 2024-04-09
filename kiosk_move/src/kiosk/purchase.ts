@@ -1,62 +1,81 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import * as dotenv from 'dotenv';
 import getExecStuff from '../../utils/execStuff';
-import { packageId, Kiosk, KioskOwnerCap, itemType, TransferPolicyId } from '../../utils/packageInfo';
-import { nft_6} from "../../utils/nft_id"
 dotenv.config();
-const purchaseItem = async () => {
+export async function purchaseItem(
+    sellerKiosk: any,
+    nftId: any,
+    buyerKiosk: any,
+    buyerKioskCap: any,
+    policyId: any,
+    itemType: any,
+    packageId: any,
+) {
+    console.log("PURCHASING NFT");
+    console.log(sellerKiosk, nftId, buyerKiosk, buyerKioskCap, policyId, itemType, packageId);
     const { keypair, client } = getExecStuff();
-    const address = "0x16b80901b9e6d3c8b5f54dc8a414bb1a75067db897e7a3624793176b97445ec6";
+    const address = "0x50453efa65fa0db11ef59e6ea289fbc2f2c98e3ee76b07834bde25cbb156828c";
     const tx = new TransactionBlock();
-    const coin = tx.splitCoins(tx.gas, [tx.pure(100000000)]); 
-    const coin2 = tx.splitCoins(tx.gas, [tx.pure(1_0_000_000)]);
-    const nested_result = tx.moveCall({  // returns  (T, TransferRequest<T>) 
+    const coin = tx.splitCoins(tx.gas, [tx.pure(100000000)]);
+    // const coin2 = tx.splitCoins(tx.gas, [tx.pure(1_0_000_000)]);
+
+    const nested_result = tx.moveCall({
         target: `0x02::kiosk::purchase`,
         arguments: [
-            tx.object(Kiosk),
-            tx.pure.id(nft_6),
+            tx.object(sellerKiosk),
+            tx.pure.id(nftId),
             tx.object(coin),
         ],
         typeArguments: [itemType]
     });
-    
-    // tx.moveCall({
-    //     target: `0x02::kiosk::lock`,
-    //     arguments: [
-    //         tx.object(Kiosk),
-    //         tx.object(KioskOwnerCap),
-    //         tx.object(TransferPolicyId),
-    //         tx.object(nested_result[0])
-    //     ],
-    //     typeArguments: [itemType]
-    // });
-    /*
-        policy: &mut TransferPolicy<T>,
-        request: &mut TransferRequest<T>,
-        payment: &mut Coin<SUI>,
-        ctx: &mut TxContext*/
-    tx.moveCall({ 
-        target: `${packageId}::royalty_policy::pay`,
+
+    // lock the item
+    tx.moveCall({
+        target: `0x02::kiosk::lock`,
         arguments: [
-            tx.object(TransferPolicyId),
-            nested_result[1],
-            //tx.object("0xaa2475a6b23a74768ff0107bcf55a5380b53fa2b36d9aacc79d56606c72474f8"),
-            //tx.object("0xaa2475a6b23a74768ff0107bcf55a5380b53fa2b36d9aacc79d56606c72474f8"),
-            coin2,
+            tx.object(buyerKiosk),
+            tx.object(buyerKioskCap),
+            tx.object(policyId),
+            tx.object(nested_result[0])
         ],
         typeArguments: [itemType]
     });
 
+    // prove the lock rule
+    tx.moveCall({
+        target: `${packageId}::item_locked_policy::prove`,
+        arguments: [
+            nested_result[1],
+            tx.object(buyerKiosk),
+        ],
+        typeArguments: [itemType]
+    });
 
     // confirm the request
     tx.moveCall({
         target: `0x02::transfer_policy::confirm_request`,
         arguments: [
-            tx.object(TransferPolicyId),
+            tx.object(policyId),
             nested_result[1],
         ],
         typeArguments: [itemType]
     });
+
+    /*
+     tx.moveCall({
+         target: `${packageId}::royalty_policy::pay`,
+         arguments: [
+             tx.object(TransferPolicyId),
+             nested_result[1],
+             tx.object("0xaa2475a6b23a74768ff0107bcf55a5380b53fa2b36d9aacc79d56606c72474f8"),
+             tx.object("0xaa2475a6b23a74768ff0107bcf55a5380b53fa2b36d9aacc79d56606c72474f8"),
+             coin2,
+         ],
+         typeArguments: [itemType]
+     });
+    */
+
+
 
     // tx.moveCall({  // returns  (ID, u64, ID)
     //     target: `0x02::transfer::public_transfer`,
@@ -68,11 +87,11 @@ const purchaseItem = async () => {
     // });
 
     // transfer item publisc
-    tx.transferObjects([coin2], tx.pure.address(address));
+    // tx.transferObjects([coin2], tx.pure.address(address));
     const result = await client.signAndExecuteTransactionBlock({
         signer: keypair,
         transactionBlock: tx
     });
     console.log(`Tx hash: ${result.digest}`);
 }
-purchaseItem();
+// purchaseItem();

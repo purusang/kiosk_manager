@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 import getExecStuff from '../../utils/execStuff';
 import { packageId, Kiosk, KioskOwnerCap } from '../../utils/packageInfo';
 dotenv.config();
-const withdraw = async () => {
+export async function withdraw(Kiosk: string, KioskOwnerCap: string) {
     const {client, keypair} = getExecStuff();
     const address = '0x16b80901b9e6d3c8b5f54dc8a414bb1a75067db897e7a3624793176b97445ec6';
     const tx = new TransactionBlock();
@@ -33,4 +33,3 @@ const withdraw = async () => {
     console.log(`Tx hash: ${res.digest}`);
 
 }
-withdraw()

@@ -13,10 +13,10 @@ function sleep(ms: number): Promise<void> {
 const getPackageId = async () => {
     try {
         const { keypair, client } = getExecStuff();
-        const account = "0x856457e720ea48cbab8307375a9e1d826632186832bb883d20c298ecf71ae9f5";
+        const account = "0x16b80901b9e6d3c8b5f54dc8a414bb1a75067db897e7a3624793176b97445ec6";
         const packagePath = process.cwd();
         const { modules, dependencies } = JSON.parse(
-            execSync(`sui move build --dump-bytecode-as-base64 --path ${packagePath}/kiosk_move`, {
+            execSync(`sui move build --dump-bytecode-as-base64 --path ${packagePath} --skip-fetch-latest-git-deps`, {
                 encoding: "utf-8",
             })
         );

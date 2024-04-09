@@ -9,39 +9,11 @@ const mintNfts = async (packageId: any): Promise<string[]> => {
     const { keypair, client } = getExecStuff();
     console.log("Address", keypair.getPublicKey().toSuiAddress());
 
-    tx.moveCall({
-        target: `${packageId}::nft::mint`,
-    });
-    // tx.moveCall({
-    //     target: `${packageId}::nft::mint`,
-    // });
-    // tx.moveCall({
-    //     target: `${packageId}::nft::mint`,
-    // });
-    // tx.moveCall({
-    //     target: `${packageId}::nft::mint`,
-    // });
-    // tx.moveCall({
-    //     target: `${packageId}::nft::mint`,
-    // });
-    // tx.moveCall({
-    //     target: `${packageId}::nft::mint`,
-    // });
-    // tx.moveCall({
-    //     target: `${packageId}::nft::mint`,
-    // });
-    // tx.moveCall({
-    //     target: `${packageId}::nft::mint`,
-    // });
-    // tx.moveCall({
-    //     target: `${packageId}::nft::mint`,
-    // });
-    // tx.moveCall({
-    //     target: `${packageId}::nft::mint`,
-    // });
-    // tx.moveCall({
-    //     target: `${packageId}::nft::mint`,
-    // });
+    for(let i=0; i<10; i++){
+        tx.moveCall({
+            target: `${packageId}::nft::mint`,
+        });
+    }
 
     const result = await client.signAndExecuteTransactionBlock({
         signer: keypair,

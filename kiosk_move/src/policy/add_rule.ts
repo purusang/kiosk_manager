@@ -1,10 +1,11 @@
+import { TransferPolicyCapId } from './../../utils/packageInfo';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import * as dotenv from 'dotenv';
 import getExecStuff from '../../utils/execStuff';
-import { packageId, TransferPolicyCapId, TransferPolicyId } from '../../utils/packageInfo';
+//import { packageId } from '../../utils/packageInfo';
 dotenv.config();
 
-async function addRule() {
+export async function addRule(packageId: any, TransferPolicyId: any, TransferPolicyCapId: any, itemType: any) {
     const { keypair, client } = getExecStuff();
     const tx = new TransactionBlock();
     tx.moveCall({
@@ -12,9 +13,9 @@ async function addRule() {
         arguments: [
             tx.object(TransferPolicyId),
             tx.object(TransferPolicyCapId),
-            tx.pure.u16(10000)
+            tx.pure.u16(10)
         ],
-        typeArguments: [`${packageId}::nft::Sword`]
+        typeArguments: [itemType]
     })
     const result = await client.signAndExecuteTransactionBlock({
         signer: keypair,
@@ -23,4 +24,4 @@ async function addRule() {
     console.log(result.digest);
 }
 
-addRule();
+//addRule();

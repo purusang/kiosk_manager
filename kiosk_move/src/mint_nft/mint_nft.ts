@@ -4,6 +4,9 @@ import fs from "fs";
 import getExecStuff from '../../utils/execStuff';
 dotenv.config();
 
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 const mintNfts = async (packageId: any): Promise<string[]> => {
     const tx = new TransactionBlock();
     const { keypair, client } = getExecStuff();
@@ -13,6 +16,7 @@ const mintNfts = async (packageId: any): Promise<string[]> => {
         tx.moveCall({
             target: `${packageId}::nft::mint`,
         });
+        await sleep(2000);
     }
 
     const result = await client.signAndExecuteTransactionBlock({

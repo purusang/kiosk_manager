@@ -1,18 +1,16 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import * as dotenv from 'dotenv';
 import getExecStuff from '../utils/execStuff';
-import { packageId, Kiosk, KioskOwnerCap } from '../utils/packageInfo';
 dotenv.config();
 
-async function AddKioskToMarketplace() {
+export async function addKioskToMarketplace(kioskId: any, kioskOwnerCapId: any, packageID:any ) {
     const { keypair, client } = getExecStuff();
-    //let sender = "0xfeb221008ec20b3454f078975558913929007e9cb8dc6f2efa22ac64719032ed";
     const tx = new TransactionBlock();
     tx.moveCall({
-        target: `${packageId}::ext::add_marketplace_to_kiosk`,
+        target: `${packageID}::ext::add_marketplace_to_kiosk`,
         arguments: [
-            tx.object(Kiosk),
-            tx.object(KioskOwnerCap),
+            tx.object(kioskId),
+            tx.object(kioskOwnerCapId),
             tx.pure.u128(10)
         ]
     })
@@ -22,5 +20,3 @@ async function AddKioskToMarketplace() {
     });
     console.log(result.digest);
 }
-
-AddKioskToMarketplace();

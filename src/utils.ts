@@ -31,7 +31,7 @@ export const getEnv = (key: string): SuiEnvs => {
 export const getKeyAndClient = (MNEMONICS: string) => {
     const keypair = Ed25519Keypair.deriveKeypair(MNEMONICS);
     const client = new SuiClient({
-        url: getFullnodeUrl('devnet'),
+        url: getFullnodeUrl('testnet'),
     });
     // console.log(keypair, client)
     return { keypair, client };

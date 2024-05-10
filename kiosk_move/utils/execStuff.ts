@@ -7,7 +7,7 @@ const MNEMONICS = process.env.MNEMONICS || '';
 const getExecStuff = () => {
     const keypair = Ed25519Keypair.deriveKeypair(MNEMONICS);
     const client = new SuiClient({
-        url: getFullnodeUrl('devnet'),
+        url: getFullnodeUrl('testnet'),
     });
     //console.log(keypair, client)
     return { keypair, client };

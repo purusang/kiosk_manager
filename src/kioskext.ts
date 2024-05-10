@@ -97,4 +97,4 @@ const ext_place = async (kiosk: string, item: string, itemType: string, policyId
     console.log(`Tx hash: ${res.digest}`);
 }
 
-const ext_lock = async (kiosk: string, )
+// const ext_lock = async (kiosk: string, )

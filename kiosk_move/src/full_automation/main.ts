@@ -1,15 +1,18 @@
 import getPackageId from "../../utils/setup";
+import { addKioskToMarketplace } from "../addKioskToMarketplace";
 import createKioskFn from "../kiosk/create_kiosk";
 import { deList } from "../kiosk/delist";
+import { allowKioskExtension } from "../kiosk/extension";
 import { lock } from "../kiosk/lock_nft";
 import { placeList } from "../kiosk/place_and_list";
 import { purchaseItem } from "../kiosk/purchase";
 import { take_item } from "../kiosk/take_item";
 import { withdraw } from "../kiosk/withdraw";
 import mintNfts from "../mint_nft/mint_nft";
+import increaseCounter from "./movetest";
 import { add_rule, createPolicy } from "../policy/policy";
 
-const CALLER_ADDRESS = "0x856457e720ea48cbab8307375a9e1d826632186832bb883d20c298ecf71ae9f5";
+const CALLER_ADDRESS = "0x0850b12520f4f23a1510cf23ae06a34c073c2582c47d59bdddc6b85a59253eb7";
 
 async function main() {
 
@@ -29,6 +32,7 @@ async function main() {
     let buyerKioskCapId = resKioskBuyer.kisokOwnerCapId;
 
     const resPolicy = await createPolicy(publisherId, itemType);
+    await sleep(3000);
     let policyId = resPolicy.policyId;
     let policyCapId = resPolicy.policyCapId;
 
@@ -45,7 +49,25 @@ async function main() {
     await deList(kioskId, KioskOwnerCapId, nftList[0], itemType);
     await take_item(kioskId, KioskOwnerCapId, nftList[1], itemType, CALLER_ADDRESS);
     await withdraw(kioskId, KioskOwnerCapId);
+    await allowKioskExtension(kioskId, KioskOwnerCapId);
+    await addKioskToMarketplace(kioskId, KioskOwnerCapId, packageId);
 }
-for (let i = 0; i < 10; i++) {
-    main();
+
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+async function run() {
+    for (let i = 0; i < 20; i++) {
+        console.log("Counter: ", i);
+        await main();
+        await sleep(9000);
+    }
 }
+// run() 
+main()
+
+// async function increase() {
+//     await increaseCounter("0xf8d782cca42dacddba55d935535b81bee71a99a6a2a09e21f8c896847eff10d7");
+// }
+
+// increase()

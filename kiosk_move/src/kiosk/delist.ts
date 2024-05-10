@@ -1,7 +1,6 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import * as dotenv from 'dotenv';
 import getExecStuff from '../../utils/execStuff';
-import { packageId, Kiosk, KioskOwnerCap, itemType } from '../../utils/packageInfo';
 
 dotenv.config();
 
